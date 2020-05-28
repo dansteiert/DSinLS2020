@@ -391,8 +391,10 @@ class Simulation(object):
                     [a.wealth for a in self.population if a.social_stratum == quintile
                      and a.age >= 18 and a.status != Status.Death])
 
-            # self.statistics["Infected_people (mean)"] = np.mean([agent.infected_people for agent in
-            #                                                      self.population if agent.status != Status.Susceptible])
+            self.statistics["R0"] = np.mean([agent.infected_people for agent in
+                                                                 self.population if agent.infected_status in [InfectionSeverity.Infectious,
+                                                                                                              InfectionSeverity.Hospitalization,
+                                                                                                              InfectionSeverity.Severe]])
 
         return self.filter_stats(kind)
 

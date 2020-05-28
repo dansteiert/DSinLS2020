@@ -27,7 +27,7 @@ def color1(s):
                   'Exposed': "brown", "Incubation": "yellow",
                   'Infectious': 'orange', 'Hospitalization': "lightcoral",
                   "Severe": "red", "Immune": "darkgreen",
-                  "Infected_people (mean)": "indigo"
+                  "R0": "indigo"
     }
     return color_dict.get(s, "white")
 
@@ -165,7 +165,7 @@ def execute_simulation(sim, **kwargs):
     """
     statistics = {'info': [], 'ecom': []}
 
-    fig, ax = plt.subplots(nrows=1, ncols=3, figsize=[20, 5])
+    fig, ax = plt.subplots(nrows=2, ncols=3, figsize=[20, 5])
     # plt.close()
 
     frames = kwargs.get('iterations', 100)
@@ -188,6 +188,7 @@ def execute_simulation(sim, **kwargs):
 
     ax[1].set_title('Contagion Evolution')
     ax[1].set_xlim((0, frames))
+    ax[1].set_ylim((0, 2.5))
 
     linhas1 = {}
 
