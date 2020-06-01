@@ -52,6 +52,13 @@ class preExistingCondition(Enum):
     # Psychologic = "m"
 
 
+class infectedAtSupermarket(Enum):
+    '''
+    Where an agent got infected
+    '''
+    Supermarket = True
+    ElseWhere = False
+
 
 class Agent(object):
     """
@@ -88,6 +95,10 @@ class Agent(object):
         self.last_x = kwargs.get('x', 0)
         self.last_y = kwargs.get('y', 0)
         self.shopping_last_iteration = False
+        '''infection location'''
+        self.infection_location = kwargs.get("infection_location", infectedAtSupermarket.ElseWhere)
+
+
     def get_description(self):
         """
         Get a simplified description of the agent health status

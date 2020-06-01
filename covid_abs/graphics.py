@@ -24,10 +24,11 @@ def color1(s):
     """Plotting colors by status string"""
     color_dict = {'Susceptible': 'blue', 'Infected': 'gray',
                   'Recovered_Immune': 'green', 'Death': "black",
+                  'No_Contact': "peru",
                   'Exposed': "brown", "Incubation": "yellow",
                   'Infectious': 'orange', 'Hospitalization': "lightcoral",
                   "Severe": "red", "Immune": "darkgreen",
-                  "R0": "indigo"
+                  "R0": "indigo", "infected at supermarked": "m"
     }
     return color_dict.get(s, "white")
 
@@ -99,7 +100,7 @@ def update_statistics(sim, statistics):
     return (df1, df2)
 
 
-def clear(scat, linhas1, linhas2):
+def clear(scat, linhas1, linhas2, linhas3):
     """
 
     :param scat:
@@ -113,16 +114,21 @@ def clear(scat, linhas1, linhas2):
     for linha2 in linhas2.values():
         linha2.set_data([], [])
 
+    for linha3 in linhas3.values():
+        linha3.set_data([], [])
+
     ret = [scat]
     for l in linhas1.values():
         ret.append(l)
     for l in linhas2.values():
         ret.append(l)
+    for l in linhas3.values():
+        ret.append(l)
 
     return tuple(ret)
 
 
-def update(sim, scat, linhas1, linhas2, statistics):
+def update(sim, scat, linhas1, linhas2, linhas3, statistics):
     """
     Execute an iteration of the simulation and update the animation graphics
 
@@ -145,10 +151,15 @@ def update(sim, scat, linhas1, linhas2, statistics):
     for col in linhas2.keys():
         linhas2[col].set_data(df2.index.values, df2[col].values)
 
+    for col in linhas3.keys():
+        linhas3[col].set_data(df1.index.values, df1[col].values)
+
     ret = [scat]
     for l in linhas1.values():
         ret.append(l)
     for l in linhas2.values():
+        ret.append(l)
+    for l in linhas3.values():
         ret.append(l)
 
     return tuple(ret)
@@ -165,62 +176,77 @@ def execute_simulation(sim, **kwargs):
     """
     statistics = {'info': [], 'ecom': []}
 
-    fig, ax = plt.subplots(nrows=2, ncols=3, figsize=[20, 5])
+    fig, ax = plt.subplots(nrows=2, ncols=2, figsize=[20, 10])
+    # fig, ax = plt.subplots(nrows=1, ncols=3, figsize=[20, 5])
     # plt.close()
-
     frames = kwargs.get('iterations', 100)
     iteration_time = kwargs.get('iteration_time', 250)
 
     sim.initialize()
 
-    ax[0].set_title('Simulation Environment')
-    ax[0].set_xlim((0, sim.length))
-    ax[0].set_ylim((0, sim.height))
+    ax[0][0].set_title('Simulation Environment')
+    ax[0][0].set_xlim((0, sim.length))
+    ax[0][0].set_ylim((0, sim.height))
 
     pos = np.array(sim.get_positions())
 
-    scat = ax[0].scatter(pos[:, 0], pos[:, 1],
+    scat = ax[0][0].scatter(pos[:, 0], pos[:, 1],
                          c=[color2(a) for a in sim.get_population()],
                          edgecolors=[edgecolor(a) for a in sim.get_population()],
-                         s=[nodesize(a) for a in sim.get_population()])
+                         s=[nodesize(a) for a in sim.get_population()],
+                         linewidths=0.1)
 
     df1, df2 = update_statistics(sim, statistics)
 
-    ax[1].set_title('Contagion Evolution')
-    ax[1].set_xlim((0, frames))
-    ax[1].set_ylim((0, 2.5))
+    ax[0][1].set_title('Contagion Evolution')
+    ax[0][1].set_xlim((0, frames))
+    ax[0][1].set_ylim((0, 1))
 
     linhas1 = {}
 
-    ax[1].axhline(y=sim.critical_limit, c="black", ls='--', label='Critical limit')
+    ax[0][1].axhline(y=sim.critical_limit, c="black", ls='--', label='Critical limit')
 
     for col in df1.columns.values:
-        if col not in ["No_Contact"]:
-            linhas1[col], = ax[1].plot(df1.index.values, df1[col].values, c=color1(col), label=col)
+        if col not in ["R0"]:
+            linhas1[col], = ax[0][1].plot(df1.index.values, df1[col].values, c=color1(col), label=col)
 
-    ax[1].set_xlabel("Nº of Days")
-    ax[1].set_ylabel("% of Population")
+    ax[0][1].set_xlabel("Nº of Days")
+    ax[0][1].set_ylabel("% of Population")
 
-    handles, labels = ax[1].get_legend_handles_labels()
-    lgd = ax[1].legend(handles, labels, loc='top right') #2, bbox_to_anchor=(0, 0))
+    handles, labels = ax[0][1].get_legend_handles_labels()
+    lgd = ax[0][1].legend(handles, labels, loc='top right') #2, bbox_to_anchor=(0, 0))
 
     linhas2 = {}
 
-    ax[2].set_title('Economical Impact')
-    ax[2].set_xlim((0, frames))
+    ax[1][1].set_title('Economical Impact')
+    ax[1][1].set_xlim((0, frames))
 
     for col in df2.columns.values:
-        linhas2[col], = ax[2].plot(df2.index.values, df2[col].values, c=color3(col), label=legend_ecom[col])
+        linhas2[col], = ax[1][1].plot(df2.index.values, df2[col].values, c=color3(col), label=legend_ecom[col])
 
-    ax[2].set_xlabel("Nº of Days")
-    ax[2].set_ylabel("Wealth")
+    ax[1][1].set_xlabel("Nº of Days")
+    ax[1][1].set_ylabel("Wealth")
 
-    handles, labels = ax[2].get_legend_handles_labels()
-    lgd = ax[2].legend(handles, labels, loc='top right') #2, bbox_to_anchor=(1, 1))
+    handles, labels = ax[1][1].get_legend_handles_labels()
+    lgd = ax[1][1].legend(handles, labels, loc='top right') #2, bbox_to_anchor=(1, 1))
 
-    animate = lambda i: update(sim, scat, linhas1, linhas2, statistics)
 
-    init = lambda: clear(scat, linhas1, linhas2)
+    linhas3 = {}
+
+    ax[1][0].set_title("R0")
+    ax[1][0].set_xlim((0, frames))
+    ax[1][0].set_ylim((0, 10))
+    for col in df1.columns.values:
+        if col == "R0":
+            linhas3[col], = ax[1][0].plot(df1.index.values, df1[col].values, c=color1(col), label=col)
+
+    ax[1][0].set_xlabel("Nº of Days")
+    ax[1][0].set_ylabel("R0")
+
+
+    animate = lambda i: update(sim, scat, linhas1, linhas2, linhas3, statistics)
+
+    init = lambda: clear(scat, linhas1, linhas2, linhas3)
 
     # animation function. This is called sequentially
     anim = animation.FuncAnimation(fig, animate, init_func=init, frames=frames, interval=iteration_time, blit=True)
