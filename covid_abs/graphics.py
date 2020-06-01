@@ -252,7 +252,8 @@ def execute_simulation(sim, **kwargs):
     anim = animation.FuncAnimation(fig, animate, init_func=init, frames=frames, interval=iteration_time, blit=True)
 
     if kwargs.get("filename", None) is not None:
-        fig.savefig(kwargs.get("filename", None))
+        anim.save(kwargs.get("filename", None) + ".gif", writer='imagemagick')
+        fig.savefig(kwargs.get("filename", None) + ".png", dpi=300)
     return anim
 
 
