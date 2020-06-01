@@ -251,6 +251,8 @@ def execute_simulation(sim, **kwargs):
     # animation function. This is called sequentially
     anim = animation.FuncAnimation(fig, animate, init_func=init, frames=frames, interval=iteration_time, blit=True)
 
+    if kwargs.get("filename", None) is not None:
+        fig.savefig(kwargs.get("filename", None))
     return anim
 
 
