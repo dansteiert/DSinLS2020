@@ -36,10 +36,13 @@ sim = Simulation(
         Status.Recovered_Immune : 5,
         Status.Infected : 5
         },
-    preexisting_condition=1.5
+    preexisting_condition=1.5, # remove addition choose 1
+    supermarked=3, # remove addition choose 0
+    incubation_period=6 # remove addition choose 0
+
 )
 
-anim = execute_simulation(sim, iterations=60)
+anim = execute_simulation(sim, iterations=40)
 
 #rc('animation', html='jshtml')
 rc('animation', html='html5')
