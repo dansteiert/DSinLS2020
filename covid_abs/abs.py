@@ -4,6 +4,7 @@ Main code for Agent Based Simulation
 
 from covid_abs.agents import *
 from covid_abs.common import *
+import pandas as pd
 
 
 def distance(a, b):
@@ -55,7 +56,9 @@ class Simulation(object):
         self.recovery_period = kwargs.get("recovery_period", 20)
         '''number of supermarked'''
         self.supermarked = kwargs.get("supermarked", 3)
-
+        # '''file location to save the last fram to'''
+        # self.filename = kwargs.get("filename", None)
+        self.total_infected = kwargs.get("InfectionList", [])
 
     def _xclip(self, x):
         return np.clip(int(x), 0, self.length)
@@ -123,6 +126,19 @@ class Simulation(object):
                 nearest_dist = dist
                 x, y = i.x, i.y
             nearest_dist = dist if dist < nearest_dist else nearest_dist
+        if x is None:
+            ix = int(np.random.randn(1) * self.amplitudes[agent.status])
+            if (agent.x + ix) <= 0 or (agent.x + ix) >= self.length:
+                x= agent.x - ix
+            else:
+                x = agent.x + ix
+
+        if y is None:
+            iy = int(np.random.randn(1) * self.amplitudes[agent.status])
+            if (agent.y + iy) <= 0 or (agent.y + iy) >= self.height:
+                y = agent.y - iy
+            else:
+                y = agent.y + iy
         return x, y
 
 
@@ -195,8 +211,12 @@ class Simulation(object):
                 agent1.status = Status.Infected
                 agent1.infected_status = InfectionSeverity.Incubation
                 agent2.infected_people += 1
+                if agent1.shopping_last_iteration == True:
+                    agent1.infection_location = infectedAtSupermarket.Supermarket
             else:
                 agent1.infected_status = InfectionSeverity.Exposed
+
+
 
     def move(self, agent, triggers=[]):
         """
@@ -391,10 +411,18 @@ class Simulation(object):
                     [a.wealth for a in self.population if a.social_stratum == quintile
                      and a.age >= 18 and a.status != Status.Death])
 
+
+            self.statistics["infected at supermarked"] =  np.sum([1 for a in self.population if
+                                                                  a.infection_location == infectedAtSupermarket.Supermarket and
+                                                                  a.status == Status.Infected]) /self.population_size
+
             self.statistics["R0"] = np.mean([agent.infected_people for agent in
                                                                  self.population if agent.infected_status in [InfectionSeverity.Infectious,
                                                                                                               InfectionSeverity.Hospitalization,
                                                                                                               InfectionSeverity.Severe]])
+
+            self.total_infected.append(np.sum([1 for a in self.population if a.status == Status.Infected]))
+            pd.DataFrame(data={"Infected": self.total_infected}).to_csv("Infected.csv")
 
         return self.filter_stats(kind)
 
